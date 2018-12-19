@@ -28,11 +28,12 @@ Alter the versions you depend on in your Gradle file like so:
 .. sourcecode:: groovy
 
     ext.corda_release_version = '4.0'
-    ext.corda_gradle_plugins_version = '4.0.36'
+    ext.corda_gradle_plugins_version = '4.0.37'
     ext.kotlin_version = '1.2.71'
     ext.quasar_version = '0.7.10'
 
-.. important:: Apps targeting Corda 4 may not at this time use Kotlin 1.3, as it was released too late in the development cycle
+.. note:: You may wish to update your kotlinOptions to use language level 1.2, to benefit from the new features. Apps targeting Corda 4
+   may not at this time use Kotlin 1.3, as it was released too late in the development cycle
    for us to risk an upgrade. Sorry! Future work on app isolation will make it easier for apps to use newer Kotlin versions than
    the node itself uses.
 
@@ -53,15 +54,17 @@ This is used by the Corda Gradle build plugin to populate your app JAR with usef
         contract {
             name "MegaApp Contracts"
             vendor "MegaCorp"
-            license "A liberal, open source license"
+            licence "A liberal, open source licence"
             versionId 1
         }
         workflow {
             name "MegaApp flows"
             vendor "MegaCorp"
-            license "A really expensive proprietary license"
+            licence "A really expensive proprietary licence"
         }
     }
+
+.. important:: Watch out for the UK spelling of the word licence (with a c).
 
 Name and vendor can be set to any string you like, they don't have to be Corda identities. Target versioning is a new concept
 introduced in Corda 4. Learn more by reading :doc:`versioning`. Setting a target version of 4 disables workarounds for various
@@ -74,8 +77,8 @@ module although it can contain a lot more than just flows: services would also g
 use one JAR for both, but this is in general an anti-pattern and can result in your flow logic code being sent over the network to
 arbitrary third party peers, even though they don't need it.
 
-Step 3. Upgrade your use of FinalityFlow
-----------------------------------------
+Step 3. Security: Upgrade your use of FinalityFlow
+--------------------------------------------------
 
 The previous ``FinalityFlow`` API is insecure. It doesn't have a receive flow, so requires counterparty nodes to accept any and
 all signed transactions that are sent to it, without checks. It is **highly** recommended that existing CorDapps migrate

@@ -13,7 +13,7 @@ CorDapps
    building-against-master
    debugging-a-cordapp
    versioning
-   upgrade-notes
+   app-upgrade-notes
    upgrading-cordapps
    secure-coding-guidelines
    flow-overriding

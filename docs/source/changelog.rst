@@ -2,7 +2,7 @@ Changelog
 =========
 
 Here's a summary of what's changed in each Corda release. For guidance on how to upgrade code from the previous
-release, see :doc:`upgrade-notes`.
+release, see :doc:`app-upgrade-notes`.
 
 .. _changelog_v4.0:
 
@@ -88,7 +88,7 @@ Version 4.0
 * ``FinalityFlow`` is now an inlined flow and requires ``FlowSession`` s to each party intended to receive the transaction. This is to fix the
   security problem with the old API that required every node to accept any transaction it received without any checks. Existing CorDapp
   binaries relying on this old behaviour will continue to function as previously. However, it is strongly recommended that CorDapps switch to
-  this new API. See :doc:`upgrade-notes` for further details.
+  this new API. See :doc:`app-upgrade-notes` for further details.
 
 * Introduced new optional network bootstrapper command line option (--minimum-platform-version) to set as a network parameter
 
@@ -290,7 +290,7 @@ Version 4.0
   The class is used as database Primary Key columns of other entities and databases already impose those columns as non-nullable
   (even if JPA annotation nullable=false was absent).
   In case your Cordapps use this entity class to persist data in own custom tables as non Primary Key columns refer to
-  :doc:`upgrade-notes` for upgrade instructions.
+  :doc:`app-upgrade-notes` for upgrade instructions.
 
 * Adding a public method to check if a public key satisfies Corda recommended algorithm specs, `Crypto.validatePublicKey(java.security.PublicKey)`.
   For instance, this method will check if an ECC key lies on a valid curve or if an RSA key is >= 2048bits. This might

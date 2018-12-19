@@ -6,45 +6,222 @@ Release notes
 Release 4.0 
 -----------
 
-Over 1500 changes, both large and small, have been added stired into the 
+Here we are, 9 months and 1500 plus commits later... and it's a bouncing baby software release!
+
+We are really proud to release Corda 4 to the open source community today, it's been a long time in
+the making, but we think you'll agree worth the wait. Corda 3 has done sterling service over the last
+year but it's time to unleash all of the new features we've been working on that extend, enhance,
+and improve Corda in a myriad of ways.
+
+Just as Corda 3 was a commitment brought with it a commitment to wire and API stability, Corda 4
+comes with those same guarantees. States valid in Corda 3 will be transparently usable in Corda 4 whilst
+we have striven to keep the API stable. Of course, where we've introduced new features not available in
+older version app developers will have to wait for their Compatibility Zone operators to adopt version 4
+as the minimum platform version.
 
 Significant Changes in 4.0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **Retirement of non-elliptic Diffie-Hellman for TLS**
-  The TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 family of ciphers is retired from the list of allowed ciphers for TLS
-  as it is a legacy cipher family not supported by all native SSL/TLS implementations.
+Reference states
+++++++++++++++++
 
-* **Reference states**:
+With Corda 4 we are introducing the concept of "reference input states". A reference input state is
+a ``ContractState`` which can be referred to in a transaction by the contracts of input and output
+states but, significantly, whose contract is not executed as part of the transaction verification process
+and is not consumed when the transaction is committed to the ledger. Rather, it is checked
+for "current-ness". In other words, the contract logic isn't run for the referencing transaction only.
+It's still a normal state when it occurs in an input or output position.
 
-  Introduced the concept of "reference input states". A reference input state is a ``ContractState`` which can be referred
-  to in a transaction by the contracts of input and output states but whose contract is not executed as part of the
-  transaction verification process and is not consumed when the transaction is committed to the ledger but is checked
-  for "current-ness". In other words, the contract logic isn't run for the referencing transaction only. It's still a
-  normal state when it occurs in an input or output position.
+CorDapp JAR Signing and Sealing
++++++++++++++++++++++++++++++++
 
-* **Added auto-acceptance for network parameters updates**
-  Added auto-accepting for a subset of network parameters, negating the need for a node operator to manually run an accept
-  command on every parameter update. This behaviour can be turned off via the node configuration.
+CorDapps built by the ``corda-gradle-plugins`` are now signed and sealed JAR files by default. This
+signing can be configured or disabled with the default certificate being the Corda development certificate.
 
-* **CorDapp JAR Signing and Sealing**:
+Signed CorDapps facilitate signature constraints checks which are an important part of the Corda security
+story allowing users to verify the contract code they're executing is as it should be!
 
-  CorDapps built by corda-gradle-plugins are now signed and sealed JAR files.
-  Signing can be configured or disabled, and it defaults to using the Corda development certificate.
-  Signed CorDapps facilitate signature constraints checks.
-  Sealed JARs require a unique package to be shipped within a single CorDapp JAR. Sealing can be disabled.
+Sealed JARs require a unique package to be shipped within a single CorDapp JAR. Sealing can be disabled.
+
+Signature Constraints
++++++++++++++++++++++
+
+<<< WRITE ME >>>
+
+A more pleasing bootstrapper
+++++++++++++++++++++++++++++
+
+The interface to the network boostrapper has undergone a significant overhaul to make the experience of
+using and interacting with it simpler, faster, and just generally more pleasant.
+
+In addition, it supports all of the new network parameters that can optionally be set. See the
+:doc:`changelog` for details on individual additions.
+
+<<< SCREEN SHOT >>>
+
+Transaction Tagging
++++++++++++++++++++
+
+Transactions verified under a Corda 4 and above node will have the currently valid signed ``NetworkParameter``
+file attached to each transaction. This will allow future introspection of states to ascertain what was
+the accepted global state of the network at the time they were notarised. Additionally, new signatures must
+be working with the current globally accepted parameters. This means older parameters where something
+was legal and no longer is cannot be used.
+
+RPC Changes
+~~~~~~~~~~~
 
 * **AMQP**
 
-Corda 3.0 shipped  wuit
+  AMQP is now default serialization framework across all of Corda (check pointing aside), swapping the RPC
+  framework from using the older ``Kryo`` implementation and thus bringing Corda into line with R3's
+  Corda Enterprise. This does mean that clients will need to have their client RPC library updated to the
+  one shipped with Corda 4. However,  it does mean that Open Source and Enterprise Corda nodes will be
+  able to interact with  clients using the same framework, greatly reducing the testing and deployment burden.
 
-* **RPC SSL**
-  Added public support for creating ``CordaRPCClient`` using SSL. For this to work the node needs to provide client applications
-  a certificate to be added to a truststore. See :doc:`tutorial-clientrpc-api`
+* **The Carpenter Comes of Age**
+
+  With this switch to AMQP completed in the RPC framework the ``Class Carpenter`` feature moves from
+  niche feature of our serialization framework to powerful component. Clients can now freely download
+  objects, such as contract states, that they have no knowledge off (the defining class files being
+  absent from their classpath). Definitions for these classes will be synthesised on the fly from the binary
+  schemas embedded in the messages, and the resulting dynamically created objects fed into generic reflection-based
+  frameworks such as XML formatters, JSON libraries, GUI construction toolkits, scripting engines and so on.
+
+  Effectively, the rich web applications written to interact with Corda nodes can operate free of the expectation
+  they be aware of every possible state type they may ever encounter within the vault of a node over its lifetime!.
+
+* **SSL**
+
+  The Corda RPC infrastructure ure can now be configured to utilise SSL for additional security. The
+  operator of a node wishing to enable this must of course generate and distribute a certificate in
+  order for client applications to successfully connect. This is documented here :doc:`tutorial-clientrpc-api`
+
+Determinism for fun and profit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is important that all nodes that process a transaction always agree on whether it is valid or not.
+Because transaction types are defined using JVM byte code, this means that the execution of that byte
+code must be fully deterministic. Out of the box a standard JVM is not fully deterministic, thus we must
+make some modifications in order to satisfy our requirements.
+
+This version of Corda introduces a standalone DJVM module. Note that this has yet to be integrated with
+the rest of the platform. It will eventually become a part of the node and enforce deterministic and
+secure execution of smart contract code, which is mobile and may propagate around the network without
+human intervention.
+
+Currently, it is released as an evaluation version. We want to give developers the ability to start
+trying it out and get used to developing deterministic code under the set of constraints that we
+envision will be placed on contract code in the future.
+
+You can read more about the DJVM here: :doc:`key-concepts-djvm`. There are also some instructions on
+how to get started with the DJVM command-line tool, which allows you to run code in a deterministic
+sandbox and inspect the byte code transformations that the DJVM applies to your code.
+
+Other change of note
+~~~~~~~~~~~~~~~~~~~~
+
+* **Contract Upgrade Transactions**
+
+  see :doc:`contract-upgrade`
+
+* **Auto-acceptance for network parameters updates**
+
+  Added auto-accepting for a subset of network parameters, negating the need for a node operator to
+  manually run an accept command on every parameter update. This behaviour can be turned off via the
+  node configuration. See :doc:`network-map`
+
+* **Retirement of non-elliptic Diffie-Hellman for TLS**
+
+  The TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 family of ciphers is retired from the list of allowed ciphers for TLS
+  as it is a legacy cipher family not supported by all native SSL/TLS implementations.
+
+* **The BelongsToContract Annotation**
+
+  CorDapps are currently expected to verify that the right contract is named in each state object.
+  This manual step is easy to miss, which would make the app less secure in a network where you trade
+  with potentially malicious counterparties. The platform now handles this for you by allowing you
+  to annotate states with which contract governs them.
+
+  If states are inner classes of a contract class, this association is automatic. See
+  :doc:`api-contract-constraints` for more information.
 
 * **The Flow Hospital**
 
-<< MORE TO COME >>
+  Introducing the flow hospital - a component of the node that manages flows that have entered
+  an error state and whether they should be retried from their previous checkpoints or have their
+  errors propagate. Currently it will respond to any error that occurs during the resolution of a
+  received transaction as part of ``FinalityFlow``. In such a scenario the receiving flow will be parked
+  and retried on node restart. This is to allow the node operator to rectify the situation as otherwise
+  the node will have an incomplete view of the ledger.
+
+* **Package Namespace Ownership**
+
+<<< Someone should opine on this >>>
+
+* **Configurable flow responders**
+
+  In Corda 3 you could specify at most one flow with an ``@InitiatedBy`` annotation as a responder to a
+  flow. However, in a production environment, it is likely that a single CorDapp  will contain a "base"
+  responder, which other users of the CorDapp will want to configure for use with their own backends.
+
+  It is now possible to:
+
+  * Subclass flows, and deterministically know that this subclassed implementation will be used as the
+    responder
+  * Specify a flow to respond to the Initiator regardless of it's place in the inheritance tree.
+    And know deterministically that this implementation will be used as the responder.
+
+  More information can be found in :docs:`flow-overriding`
+
+* **Error Code Generation**
+
+  Stack traces generated within Corda are now hashed to produce a unique error code that can be
+  used to perform a lookup into a knowledge base. The hope is that common error conditions can
+  quickly be resolved and opaque errors explained in a more user friendly format to facilitate
+  faster debugging and trouble shooting.
+
+  At the moment, Stack Overflow is that knowledge base, with the error codes being converted
+  to a URL that redirects either directly to the answer or to an appropriate search on Stack Overflow.
+
+* **A New Statemachine**
+
+  Corda 4 has a substantially overhauled internal state machine that is both faster and easier to maintain
+  whilst giving us the ability to add debuggable features such as the ``Flow Hospital``. This is a
+  transparent change for users, but the impact in terms of added stability and extensibility will bring
+  many benefits now and in the future,
+
+API Changes
+~~~~~~~~~~~
+
+ * Stopped exposing the ``StartedNode`` and ``AbstractNode`` as part of the public test api.
+ * The ``FlowStateMachine`` has been removed from the publix API.
+ * Exposure of node internals in mock network.
+ * New Vault Query : ``StateModificationStatus`` which can be ``MODIFIABLE``, ``NOT_MODIFIABLE``, or ``ALL``
+ * Added ``is_modifiable`` column to the ``VaultStates`` table. A node that is a participant in a state will view it as
+   ``MODIFIABLE`` whilst those it isn't are viewed as ``NOT_MODIFIABLE``
+ * Further to the above, ``getCashBalances`` has been updated to only query for MODIFIABLE states as we only want to count cash states which we own!
+
+Minor Changes
+~~~~~~~~~~~~~
+
+ * We've raised the minimum JDK to 8u171, needed to get fixes for certain ZIP compression bugs
+ * Upgraded to Kotlin 1.2.71
+ * Upgraded to Gradle 4.10.1. (#3947)
+ * Liquibase - The node now uses Liquibase to bootstrap and update itself. This is a transparent change with
+   pre Corda 3 nodes seamlessly upgrading to operate as if they'd been bootstrapped in this way.
+   This also applies to the finance CorDapp module.
+ * Vault Queries are now case insensitive.
+ * Auto completion for the command line tooling (when enabled - see <<<some doc>>>)
+ * New jokes - you're welcome! (and we're sorry!)
+ * Version 2 of the serialization engine
+ * Support for MSSQL
+ * Enforcement of Max Transaction size
+ * Logging is now asynchronous
+ * Migrated away from FastClasspathScanner to ClassGraph
+ * Notary backpressure added to the platform - a transparent change that none the less leads to a much stabler network
+ * Added a Node commanline option for validating configuration ``java -jar corda-4.0.jar validate-configuration``
+ * Added the ``--clear-network-map-cache`` command line flag
 
 .. _release_notes_v3_3:
 

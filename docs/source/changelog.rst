@@ -4,8 +4,10 @@ Changelog
 Here's a summary of what's changed in each Corda release. For guidance on how to upgrade code from the previous
 release, see :doc:`upgrade-notes`.
 
-Unreleased
-----------
+.. _changelog_v4.0:
+
+Version 4.0
+-----------
 
 * TimedFlows (only used by the notary client flow) will never give up trying to reach the notary, as this would leave the states
   in the notarisation request in an undefined state (unknown whether the spend has been notarised, i.e. has happened, or not). Also,

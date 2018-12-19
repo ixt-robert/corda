@@ -23,6 +23,8 @@ from the new features in the latest release.
 Step 1. Adjust the version numbers in your Gradle build files
 -------------------------------------------------------------
 
+Alter the versions you depend on in your Gradle file like so:
+
 .. sourcecode:: groovy
 
     ext.corda_release_version = '4.0'
@@ -33,6 +35,12 @@ Step 1. Adjust the version numbers in your Gradle build files
 .. important:: Apps targeting Corda 4 may not at this time use Kotlin 1.3, as it was released too late in the development cycle
    for us to risk an upgrade. Sorry! Future work on app isolation will make it easier for apps to use newer Kotlin versions than
    the node itself uses.
+
+You should also ensure you're using Gradle 4.10 (but not 5). If you use the Gradle wrapper, run::
+
+    ./gradlew wrapper --gradle-version 4.10.3
+
+Otherwise just upgrade your installed copy in the usual manner for your operating system.
 
 Step 2. Add a "cordapp" section to your Gradle build file
 ---------------------------------------------------------
